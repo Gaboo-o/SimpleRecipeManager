@@ -1,79 +1,140 @@
 import tkinter as tk
-from turtle import width
 import customtkinter as ctk
-
-class SlidePanel(ctk.CTkFrame):
-    def __init__(self, parent, start_pos, end_pos, **kwargs):
-        super().__init__(master=parent, **kwargs)
-        self.start_pos = min(start_pos, end_pos)
-        self.end_pos = max(start_pos, end_pos)
-        self.width = abs(start_pos - end_pos)
-        self.pos = start_pos
-        self.increasing = start_pos < end_pos
-        self.place(relx=start_pos, relwidth=self.width, relheight=1)
-
-    def animate(self):
-        if self.increasing:
-            self.animate_right()
-        else:
-            self.animate_left()
-
-    def animate_right(self):
-        if self.pos < self.end_pos:
-            self.pos += 0.008
-            self.place(relx=self.pos, relwidth=self.width, relheight=1)
-            self.after(10, self.animate_right)
-        else:
-            self.increasing = False
-
-    def animate_left(self):
-        if self.pos > self.start_pos:
-            self.pos -= 0.008
-            self.place(relx=self.pos, relwidth=self.width, relheight=1)
-            self.after(10, self.animate_left)
-        else:
-            self.increasing = True
+from recipe_manager import RecipeManager
+from widgets import SlideFrame, ResizableFrame
 
 
-def show_tab(tab_frame):
-    for tab in tabs:
-        tab.pack_forget()
-    tab_frame.pack(fill='both', expand=True)
+def setup_animated_panel(window):
+    animated_panel = SlideFrame(window, -0.3, 0.0)
+    
+    return animated_panel
 
-window = ctk.CTk()
-window.title('Animated Widgets')
-window.geometry('600x400')
 
-new_tab1 = ctk.CTkScrollableFrame(window, bg_color="red")
-ctk.CTkLabel(new_tab1, text="This is Tab 1", bg_color="red").pack(padx=20, pady=20)
-new_tab2 = ctk.CTkScrollableFrame(window, bg_color="blue")
-ctk.CTkLabel(new_tab2, text="This is Tab 2", bg_color="blue").pack(padx=20, pady=20)
-new_tab3 = ctk.CTkScrollableFrame(window, bg_color="yellow")
-ctk.CTkLabel(new_tab3, text="This is Tab 3", bg_color="yellow").pack(padx=20, pady=20)
+def setup_sidebar(animated_panel):
+    title_frame = ctk.CTkFrame(
+        animated_panel, 
+        width=animated_panel.width, 
+        bg_color="transparent",
+        )
+    title_frame.pack(fill="x")
+    ctk.CTkLabel(
+        title_frame, 
+        text="Folders",
+        ).pack(side="top", anchor="center")
 
-tabs = [new_tab1, new_tab2, new_tab3]
+    for name in tabs.keys():
+        tab_button = ctk.CTkButton(
+            animated_panel, 
+            text=name, 
+            border_width=0, 
+            corner_radius=0, 
+            command=lambda name=name: show_tab(name),
+            )
+        tab_button.pack(anchor="n", fill="x")   
 
-show_tab(new_tab1)
+    
+current_active_tab = None
+def show_tab(tab_name):
+    global current_active_tab
+    
+    if current_active_tab:
+        current_place_info = current_active_tab.place_info()
+        new_pos = float(current_place_info["relx"])
+        current_active_tab.place_forget()
+    else:
+        new_pos = 0
+        for _, tab in tabs.items():
+            tab.place_forget()
+        
+    current_active_tab = tabs[tab_name]
+    current_active_tab.set_position(new_pos)
+    current_active_tab.place(relx=new_pos, relwidth=1.0 - new_pos, relheight=1.0)
 
-animated_button = SlidePanel(window, 0.0, 0.3, fg_color="transparent")
-animated_panel = SlidePanel(window, -0.3, 0.0)
 
-def animate():
-    animated_panel.animate()
-    animated_button.animate()
+def create_tabs(parent):
+    tabs = {
+        "All": ResizableFrame(parent, 0, 0.3, fg_color="red"),
+        "Favorites": ResizableFrame(parent, 0, 0.3, fg_color="blue"),
+        "Trash": ResizableFrame(parent, 0, 0.3, fg_color="yellow")
+    }
+    # for name, frame in tabs.items():
+    #     ctk.CTkLabel(frame, text=f"This is {name} Tab", fg_color=frame.cget("fg_color")).pack(padx=20, pady=20)
+    return tabs
 
-button = ctk.CTkButton(animated_button, text='>', fg_color="transparent", command=animate)
-button.place(relx=animated_panel.pos+animated_panel.width, rely=0.15, relwidth=animated_panel.width, relheight=0.1)
 
-title_frame = ctk.CTkFrame(animated_panel, width=animated_panel.width, bg_color="transparent")
-title_frame.pack(fill="x")
-ctk.CTkLabel(title_frame, text="Folders").pack(side="left", anchor="center")
+def setup_main_window():
+    window = ctk.CTk()
+    window.title('Animated Widgets')
+    window.geometry('600x400')
+    
+    window.grid_columnconfigure(0, weight=1)
+    window.grid_rowconfigure(1, weight=1)
+    
+    return window
 
-ctk.CTkButton(animated_panel, text="All", corner_radius=0, command=lambda: show_tab(new_tab1)).pack(anchor="n", fill="x")
-ctk.CTkButton(animated_panel, text="Favorites", corner_radius=0, command=lambda: show_tab(new_tab2)).pack(anchor="n", fill="x")
-ctk.CTkButton(animated_panel, text="Trash", corner_radius=0, command=lambda: show_tab(new_tab3)).pack(anchor="n", fill="x")
+max_columns = 3
+def calculate_max_columns():
+    global max_columns
+    widget_width = 200  # Assumed width of each widget
+    window_width = window.winfo_width()
+    max_columns = max(1, window_width // widget_width)
 
-button = ctk.CTkButton(window, text="+", corner_radius=0, command=animated_panel.animate)
-button.place(relx=0.5, rely=0.9, anchor="center")
+def on_resize(event):
+    calculate_max_columns()
+    rearrange_recipes()
 
-window.mainloop()
+def rearrange_recipes():
+    for frame in tabs.values():
+        for widget in frame.winfo_children():
+            widget.grid_forget()
+    
+    for frame in tabs.values():
+        row = col = 0
+        for widget in frame.winfo_children():
+            widget.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
+            col += 1
+            if col >= max_columns:
+                col = 0
+                row += 1
+
+def add_recipe_to_active_tab():
+    RecipeManager.open_editor(current_active_tab, None, "add")
+    rearrange_recipes()
+
+
+if __name__ == "__main__":
+    window = setup_main_window()
+    global tabs
+    tabs = create_tabs(window)
+    show_tab("All")
+
+    animated_panel = setup_animated_panel(window)
+
+    def animate():
+        animated_panel.animate()
+        current_active_tab.animate()
+
+    setup_sidebar(animated_panel)
+    
+    button = ctk.CTkButton(
+        window,
+        text="-", 
+        width=25,
+        height=25,
+        corner_radius=0, 
+        command=animate,
+        )
+    button.place(relx=0.03, rely=0.03, anchor="center")
+    
+    add_button = ctk.CTkButton(
+        window,
+        text="+",
+        width=25,
+        height=25,
+        corner_radius=0,
+        command=add_recipe_to_active_tab
+    )
+    add_button.place(relx=0.9, rely=0.9, anchor="center")
+
+    window.bind("<Configure>", on_resize)
+    window.mainloop()

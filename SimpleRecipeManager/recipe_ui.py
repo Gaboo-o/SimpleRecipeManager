@@ -6,13 +6,13 @@ from recipe_manager import RecipeManager
 class RecipeUI(ctk.CTkFrame):
     """Displays a recipe"""
     
-    def __init__(self, master=None, recipe=None):
+    def __init__(self, parent=None, recipe=None):
         """Takes a Recipe obj and uses it to set itself up"""
 
-        super().__init__(master, width=200, height=200)
-        self.pack(padx=10, pady=10, side="left", expand=True)
-        self.pack_propagate(False)
+        super().__init__(master=parent, width=200, height=200)
+        self.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
+        self.parent = parent
         self.recipe = recipe
         
         self.string_vars()
@@ -132,6 +132,7 @@ class RecipeUI(ctk.CTkFrame):
         """Opens the editor"""
         
         RecipeManager.open_editor(
+            parent=self.parent,
             recipe=self.recipe,
             my_type="edit",
             )

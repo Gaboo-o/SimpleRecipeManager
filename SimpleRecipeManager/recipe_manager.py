@@ -24,18 +24,18 @@ class RecipeManager:
 
 
     @classmethod
-    def open_editor(cls, recipe=None, my_type="add"):
+    def open_editor(cls, parent=None, recipe=None, my_type="add"):
         """Open the editor with provided title, ingredients, and steps."""
         
         from recipe_editor_ui import RecipeEditorUI # here to avoid circular import
         
         if not recipe:
             recipe = Recipe()
-        RecipeEditorUI(recipe, my_type)
+        RecipeEditorUI(parent, recipe, my_type)
 
 
     @classmethod
-    def close_editor(cls, recipe=None, my_type="add", **kwargs):
+    def close_editor(cls, parent=None, recipe=None, my_type="add", **kwargs):
         """Close the editor and add edited recipe to the list."""
         
         from recipe_ui import RecipeUI # here to avoid circular import     
@@ -54,4 +54,4 @@ class RecipeManager:
                     break             
         else: # Create new RecipeUI            
             cls.add(cls.recipes, recipe)         
-            cls.add(cls.recipes_ui, RecipeUI(recipe=recipe))            
+            cls.add(cls.recipes_ui, RecipeUI(parent, recipe))            

@@ -6,12 +6,13 @@ from recipe_manager import RecipeManager
 class RecipeEditorUI(ctk.CTkFrame):
     """Displays the recipe editor"""
     
-    def __init__(self, recipe, my_type="add", master=None):
+    def __init__(self, parent, recipe, my_type="add"):
         """Takes a recipe"""
         
-        super().__init__(master)
+        super().__init__(master=None)
         self.place(relheight=1, relwidth=1)
                  
+        self.parent = parent
         self.recipe = recipe
         self.my_type = my_type
         
@@ -136,7 +137,8 @@ class RecipeEditorUI(ctk.CTkFrame):
         self.recipe.steps = self.steps_var.get()
        
         RecipeManager.close_editor(
-            self.recipe,
-            my_type=self.my_type
+            parent=self.parent,
+            recipe=self.recipe,
+            my_type=self.my_type,
             )
         self.destroy()
