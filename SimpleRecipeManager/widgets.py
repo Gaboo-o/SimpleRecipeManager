@@ -23,7 +23,7 @@ class SlideFrame(ctk.CTkFrame):
         if self.pos < self.end_pos:
             self.pos += self.rel_speed  # Increment the position
             self.place(relx=self.pos, relwidth=self.width, relheight=1)  # Update the panel position
-            self.after(15, self._animate_right)  # Continue the animation after 5 ms
+            self.after(10, self._animate_right)  # Continue the animation after 5 ms
         else:
             self.increasing = False  # Reverse direction when the end position is reached
 
@@ -31,7 +31,7 @@ class SlideFrame(ctk.CTkFrame):
         if self.pos > self.start_pos:
             self.pos -= self.rel_speed  # Decrement the position
             self.place(relx=self.pos, relwidth=self.width, relheight=1)  # Update the panel position
-            self.after(15, self._animate_left)  # Continue the animation after 5 ms
+            self.after(10, self._animate_left)  # Continue the animation after 5 ms
         else:
             self.increasing = True
 
@@ -61,7 +61,7 @@ class ResizableFrame(ctk.CTkFrame):
         if self.pos < self.end_pos:
             self.pos += self.rel_speed
             self._update_place()
-            self.after(15, self._animate_expand)
+            self.after(10, self._animate_expand)
         else:
             self.increasing = False
 
@@ -69,12 +69,9 @@ class ResizableFrame(ctk.CTkFrame):
         if self.pos > self.start_pos:
             self.pos -= self.rel_speed
             self._update_place()
-            self.after(15, self._animate_shrink)
+            self.after(10, self._animate_shrink)
         else:
             self.increasing = True
                     
     def _update_place(self):
         self.place(relx=self.pos, relwidth=1.0 - self.pos, relheight=1.0)
-        self.update_idletasks()  # Force update of the frame and its children
-        for child in self.winfo_children():
-            child.update_idletasks()

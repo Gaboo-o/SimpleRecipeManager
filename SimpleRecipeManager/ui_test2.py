@@ -85,17 +85,22 @@ def on_resize(event):
 
 def rearrange_recipes():
     for frame in tabs.values():
-        for widget in frame.winfo_children():
-            widget.grid_forget()
-    
-    for frame in tabs.values():
-        row = col = 0
-        for widget in frame.winfo_children():
+        widgets = frame.winfo_children()
+        num_widgets = len(widgets)
+        
+        # Calculate the number of rows needed
+        num_rows = (num_widgets + max_columns - 1) // max_columns
+        
+        for i, widget in enumerate(widgets):
+            row = i // max_columns
+            col = i % max_columns
             widget.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
-            col += 1
-            if col >= max_columns:
-                col = 0
-                row += 1
+        
+        # Ensure the grid rows and columns expand properly
+        for i in range(num_rows):
+            frame.grid_rowconfigure(i, weight=1)
+        for j in range(max_columns):
+            frame.grid_columnconfigure(j, weight=1)
 
 def add_recipe_to_active_tab():
     RecipeManager.open_editor(current_active_tab, None, "add")

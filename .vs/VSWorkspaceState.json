@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\SimpleRecipeManager"
+    "\\SimpleRecipeManager",
+    "\\SimpleRecipeManager\\images"
   ],
-  "SelectedNode": "\\SimpleRecipeManager\\recipe_editor_ui.py",
+  "SelectedNode": "\\SimpleRecipeManager\\images\\coxinha.jpg",
   "PreviewInSolutionExplorer": false
 }
